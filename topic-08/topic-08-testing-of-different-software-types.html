@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>08. Testing of different software types - конспект і міні-задачі</title>
+<style>
+:root{
+  --bg:#FBF9FE; --surface:#FFFFFF; --lav:#F1ECFB; --lav2:#E3D9F7; --line:#D6CAEE;
+  --ink:#231938; --muted:#54476C; --violet:#5A34AE; --violet2:#7A58CF; --on-violet:#FFFFFF;
+  --ok:#17663A; --ok-bg:#E2F3E7; --bad:#A01E4E; --bad-bg:#FBE3EB;
+  --teal:#0C6560; --teal-bg:#DCF0EE; --rose:#9B1C4A; --rose-bg:#FBE8EF;
+  --shadow:0 1px 0 rgba(58,30,110,.06);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#140F1D; --surface:#1D1629; --lav:#271F38; --lav2:#352A4E; --line:#43375F;
+    --ink:#EEE8F9; --muted:#C1B6D8; --violet:#C4B0F8; --violet2:#A88CF0; --on-violet:#1A1128;
+    --ok:#86DDA3; --ok-bg:#15301F; --bad:#F59AB9; --bad-bg:#3B1627;
+    --teal:#86DAD2; --teal-bg:#12302D; --rose:#F59AB9; --rose-bg:#3A1727;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#140F1D; --surface:#1D1629; --lav:#271F38; --lav2:#352A4E; --line:#43375F;
+  --ink:#EEE8F9; --muted:#C1B6D8; --violet:#C4B0F8; --violet2:#A88CF0; --on-violet:#1A1128;
+  --ok:#86DDA3; --ok-bg:#15301F; --bad:#F59AB9; --bad-bg:#3B1627;
+  --teal:#86DAD2; --teal-bg:#12302D; --rose:#F59AB9; --rose-bg:#3A1727;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px);scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+h1,h2,h3,h4{font-family:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,"Times New Roman",serif;line-height:1.25;color:var(--ink)}
+h2{font-size:1.75rem;margin:3rem 0 .75rem;padding-top:.5rem;border-top:2px solid var(--lav2)}
+h3{font-size:1.28rem;margin:2rem 0 .5rem}
+h4{font-size:1.05rem;margin:1rem 0 .4rem}
+p,li{max-width:72ch}
+a{color:var(--violet);text-underline-offset:2px}
+a:hover{color:var(--violet2)}
+:focus-visible{outline:3px solid var(--violet2);outline-offset:2px;border-radius:4px}
+code,.tech{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;background:var(--lav);padding:.05em .35em;border-radius:4px}
+.term{font-weight:600}
+.gl{font-size:.8em;white-space:nowrap}
+.ref{display:block;margin-top:.6rem;font-size:.88rem;color:var(--muted)}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip{position:absolute;left:-999px;top:0;background:var(--violet);color:var(--on-violet);padding:.5rem 1rem;z-index:50}
+.skip:focus{left:1rem;top:calc(env(safe-area-inset-top,0px) + .5rem)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:1fr;max-width:1180px;margin:0 auto;padding:0 1rem 6rem}
+@media (min-width:1000px){.layout{grid-template-columns:260px minmax(0,1fr);gap:3rem;padding:0 2rem 6rem}}
+aside.toc{position:relative}
+@media (min-width:1000px){aside.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 1rem);align-self:start;max-height:calc(100vh - 2rem);overflow:auto;padding:1.5rem 0}}
+.toc details{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-top:1rem}
+.toc summary{cursor:pointer;padding:.7rem 1rem;font-weight:600;list-style:none}
+.toc summary::-webkit-details-marker{display:none}
+.toc summary::after{content:" ▾";color:var(--muted)}
+.toc details[open] summary::after{content:" ▴"}
+@media (min-width:1000px){.toc details{border:none;background:none;margin:0}.toc summary{display:none}}
+.toc ol{list-style:none;margin:0;padding:.25rem .75rem 1rem}
+.toc li{margin:0}
+.toc a{display:block;padding:.3rem .5rem;border-radius:6px;color:var(--ink);text-decoration:none;font-size:.93rem;line-height:1.35}
+.toc a:hover{background:var(--lav)}
+.toc .sub a{padding-left:1.4rem;font-size:.86rem;color:var(--muted)}
+main{min-width:0}
+
+/* hero */
+.hero{padding:2.5rem 0 1rem;display:grid;gap:1.5rem;align-items:center}
+@media (min-width:760px){.hero{grid-template-columns:1.25fr 1fr}}
+.hero .num{font-family:"Iowan Old Style",Palatino,Georgia,serif;font-size:4.5rem;line-height:1;color:var(--violet);margin:0}
+.hero h1{font-size:2.25rem;margin:.25rem 0 .75rem}
+.hero .meta{color:var(--muted);margin:0}
+.hero svg{width:100%;height:auto;max-width:420px;justify-self:center}
+.hero svg .o{fill:none;stroke:var(--violet);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.hero svg .f{fill:var(--lav)}
+.hero svg .t{fill:var(--muted);font:600 13px system-ui,sans-serif}
+.hero svg .a{fill:var(--violet2)}
+
+/* callouts */
+.note{border:1px solid var(--line);border-left:6px solid var(--violet);background:var(--surface);border-radius:8px;padding:.9rem 1.1rem;margin:1.25rem 0;max-width:76ch}
+.note > strong:first-child{display:block;margin-bottom:.25rem}
+.note p{margin:.35rem 0}
+.note.mistake{border-left-color:var(--rose);background:var(--rose-bg)}
+.note.interview{border-left-color:var(--teal);background:var(--teal-bg)}
+.note.lecture{border-left-style:dashed;border-left-color:var(--muted);background:var(--lav)}
+.note .ic{font-weight:700;margin-right:.35rem}
+.where{background:var(--lav);border-radius:12px;padding:1.1rem 1.25rem;max-width:76ch}
+.goals li{margin:.35rem 0}
+.k{display:inline-block;font-size:.75rem;font-weight:700;border:1px solid var(--violet);color:var(--violet);border-radius:999px;padding:0 .5rem;margin-right:.35rem;vertical-align:1px}
+
+/* tasks */
+.task{border:2px solid var(--lav2);background:var(--surface);border-radius:14px;padding:1.1rem 1.1rem 1rem;margin:2rem 0;max-width:80ch}
+.task-head{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline}
+.task-num{background:var(--violet);color:var(--on-violet);font-weight:700;font-size:.8rem;border-radius:6px;padding:.1rem .5rem}
+.task h3{margin:0;font-size:1.15rem}
+.task-cond{margin:.6rem 0 1rem}
+.task-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+.btn{font:inherit;font-size:.95rem;border:2px solid var(--violet);background:transparent;color:var(--violet);border-radius:8px;padding:.45rem .9rem;cursor:pointer;min-height:44px}
+.btn.primary{background:var(--violet);color:var(--on-violet)}
+.btn.ghost{border-color:var(--line);color:var(--ink)}
+.btn:hover{filter:brightness(1.08)}
+.feedback{margin:.75rem 0 0;font-weight:600;min-height:1.2em}
+.feedback.ok{color:var(--ok)}
+.feedback.bad{color:var(--bad)}
+.explain{margin-top:.75rem;background:var(--lav);border-radius:10px;padding:.8rem 1rem}
+.explain p{margin:.3rem 0}
+.mark{display:block;font-size:.88rem;font-weight:600;margin-top:.3rem}
+.is-ok{outline:2px solid var(--ok);background:var(--ok-bg)!important}
+.is-ok > .mark,.is-ok .mark{color:var(--ok)}
+.is-bad{outline:2px solid var(--bad);background:var(--bad-bg)!important}
+.is-bad > .mark,.is-bad .mark{color:var(--bad)}
+.match-list{list-style:none;padding:0;margin:0;display:grid;gap:.6rem}
+.match-list li{background:var(--lav);border-radius:10px;padding:.65rem .8rem;max-width:none}
+.match-list label{display:block;margin-bottom:.35rem}
+select,input[type=text]{font:inherit;font-size:.95rem;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:8px;padding:.4rem .5rem;min-height:44px;max-width:100%}
+select:focus-visible,input:focus-visible{border-color:var(--violet2)}
+.dnd{display:grid;gap:.9rem}
+@media (min-width:700px){.dnd.cols-3 .buckets{grid-template-columns:repeat(3,1fr)}.dnd.cols-5 .buckets{grid-template-columns:repeat(2,1fr)}}
+.buckets{display:grid;gap:.75rem;grid-template-columns:1fr}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:.6rem;min-height:80px;background:var(--bg)}
+.drop.pool{background:var(--lav)}
+.drop.hover{border-color:var(--violet2);background:var(--lav2)}
+.drop h4{margin:.1rem .2rem .5rem;font-size:.95rem;font-family:inherit}
+.zone{list-style:none;margin:0;padding:0;display:grid;gap:.45rem;min-height:30px}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.5rem .6rem;display:grid;grid-template-columns:auto 1fr;gap:.2rem .5rem;align-items:start;max-width:none;box-shadow:var(--shadow)}
+.chip .handle{cursor:grab;touch-action:none;user-select:none;font-size:1.2rem;line-height:1;padding:.35rem .4rem;border-radius:6px;color:var(--violet);background:var(--lav);grid-row:span 2;align-self:stretch;display:flex;align-items:center}
+.chip .handle:active{cursor:grabbing}
+.chip select{font-size:.85rem;min-height:36px;padding:.2rem .3rem}
+.chip .mark{grid-column:1/-1}
+.chip.dragging{opacity:.4}
+.drag-ghost{position:fixed;z-index:100;pointer-events:none;opacity:.92;transform:rotate(1.5deg);box-shadow:0 8px 24px rgba(40,20,80,.25)}
+.opts{list-style:none;padding:0;margin:0;display:grid;gap:.45rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;background:var(--lav);border-radius:10px;padding:.55rem .75rem;cursor:pointer;max-width:none}
+.opt input{width:20px;height:20px;margin-top:.2rem;accent-color:var(--violet)}
+.opt .mark{flex-basis:100%}
+.opt-wrap{display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-start}
+.hl{line-height:2}
+.sent-wrap{display:block;margin:.3rem 0;border-radius:8px;padding:.1rem}
+.sent{font:inherit;text-align:left;color:var(--ink);background:transparent;border:1px dashed var(--line);border-radius:8px;padding:.35rem .6rem;cursor:pointer;width:100%;line-height:1.5}
+.sent[aria-pressed="true"]{background:var(--rose-bg);border:2px solid var(--rose)}
+.sent[aria-pressed="true"]::before{content:"⚑ ";color:var(--rose);font-weight:700}
+.data{border-collapse:collapse;margin:.75rem 0;font-size:.95rem;min-width:320px}
+.data th,.data td{border:1px solid var(--line);padding:.35rem .6rem;text-align:left}
+.data th{background:var(--lav)}
+.table-scroll{overflow-x:auto;max-width:100%}
+.case{border:2px solid var(--violet);border-radius:16px;padding:1rem 1.25rem;background:var(--surface)}
+.case .badge{display:inline-block;background:var(--lav2);color:var(--ink);border-radius:6px;padding:.05rem .5rem;font-size:.85rem;font-weight:600}
+
+/* quiz */
+.q{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:.6rem 0;max-width:80ch}
+.q summary{cursor:pointer;padding:.75rem 1rem;list-style:none;display:flex;gap:.6rem;align-items:baseline}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"＋";color:var(--violet);font-weight:700}
+.q[open] summary::before{content:"－"}
+.q .ans{padding:0 1rem .9rem 2.4rem}
+dl.gloss{max-width:76ch}
+dl.gloss dt{font-weight:700;margin-top:.9rem}
+dl.gloss dd{margin:.2rem 0 0 0}
+ol.src li{margin:.5rem 0}
+
+/* progress */
+.progress{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);padding:.55rem 1rem calc(.55rem + env(safe-area-inset-bottom,0px));display:flex;gap:1rem;align-items:center;justify-content:center;font-size:.92rem}
+.progress .track{flex:0 1 320px;height:10px;background:var(--lav2);border-radius:999px;overflow:hidden}
+.progress .bar{height:100%;width:0;background:var(--violet);transition:width .3s}
+footer.end{margin-top:3rem;color:var(--muted);font-size:.9rem}
+
+@media print{
+  .toc,.progress,.task-actions,.skip,.chip .handle{display:none!important}
+  .layout{display:block;padding:0}
+  body{font-size:12pt;background:#fff;color:#000}
+  .explain{display:block!important}
+  .explain[hidden]{display:block!important}
+  .task,.case,.note,.q{break-inside:avoid;border-color:#999}
+  details > *{display:block}
+  a{color:#000}
+  a[href^="http"]::after{content:" (" attr(href) ")";font-size:.85em}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Перейти до змісту</a>
+<div class="layout">
+<aside class="toc" aria-label="Зміст">
+  <details id="tocBox">
+    <summary>Зміст теми</summary>
+    <nav>
+      <ol>
+        <li><a href="#where">Де ми в курсі</a></li>
+        <li><a href="#goals">Цілі навчання</a></li>
+        <li><a href="#s1">1. Чому тип ПЗ змінює тестування</a></li>
+        <li><a href="#s2">2. Desktop application</a></li>
+        <li><a href="#s3">3. Web application</a></li>
+        <li><a href="#s4">4. Mobile application</a></li>
+        <li><a href="#s5">5. Напрями тестування</a></li>
+        <li class="sub"><a href="#s5-1">Device compatibility</a></li>
+        <li class="sub"><a href="#s5-2">Internet availability</a></li>
+        <li class="sub"><a href="#s5-3">OS vs browser compatibility</a></li>
+        <li class="sub"><a href="#s5-4">Client-Server Testing</a></li>
+        <li class="sub"><a href="#s5-5">Mobility Testing</a></li>
+        <li class="sub"><a href="#s5-6">Usability Testing</a></li>
+        <li class="sub"><a href="#s5-7">Application updates</a></li>
+        <li class="sub"><a href="#s5-8">Interruption Testing</a></li>
+        <li><a href="#s6">6. Де тестувати: пристрої, емулятори, лабораторії</a></li>
+        <li><a href="#case">Наскрізний приклад</a></li>
+        <li><a href="#quiz">Питання для самоперевірки</a></li>
+        <li><a href="#glossary">Глосарій теми</a></li>
+        <li><a href="#sources">Джерела</a></li>
+      </ol>
+    </nav>
+  </details>
+</aside>
+
+<main id="main">
+<header class="hero">
+  <div>
+    <p class="num" aria-hidden="true">08</p>
+    <h1>Testing of different software types</h1>
+    <p class="meta">Тема 8 курсу з мануального тестування. Орієнтовний час опрацювання - 120 хвилин: близько 75 хвилин теорії, 30 хвилин міні-задач і наскрізного прикладу, 15 хвилин самоперевірки.</p>
+  </div>
+  <svg viewBox="0 0 420 220" role="img" aria-labelledby="heroT">
+    <title id="heroT">Три типи ПЗ: desktop, web і mobile</title>
+    <rect class="f" x="10" y="30" width="170" height="112" rx="8"/>
+    <rect class="o" x="10" y="30" width="170" height="112" rx="8"/>
+    <path class="o" d="M80 142 L72 172 L118 172 L110 142"/>
+    <path class="o" d="M58 176 H132"/>
+    <rect class="f" x="160" y="58" width="170" height="118" rx="8"/>
+    <rect class="o" x="160" y="58" width="170" height="118" rx="8"/>
+    <path class="o" d="M160 80 H330"/>
+    <circle class="a" cx="174" cy="69" r="4"/><circle class="a" cx="188" cy="69" r="4"/><circle class="a" cx="202" cy="69" r="4"/>
+    <rect class="o" x="216" y="63" width="100" height="12" rx="6"/>
+    <rect class="f" x="318" y="28" width="86" height="170" rx="16"/>
+    <rect class="o" x="318" y="28" width="86" height="170" rx="16"/>
+    <path class="o" d="M348 40 H374"/>
+    <circle class="o" cx="361" cy="184" r="6"/>
+    <text class="t" x="40" y="94">desktop</text>
+    <text class="t" x="222" y="126">web</text>
+    <text class="t" x="336" y="116">mobile</text>
+  </svg>
+</header>
+
+<section id="where" aria-labelledby="where-h">
+  <h2 id="where-h">Де ми в курсі</h2>
+  <div class="where">
+    <p>У попередніх семи темах ми зібрали весь базовий інструментарій: знаємо, що таке тестування і чим error відрізняється від defect і failure, як тестування вбудовується в SDLC, як аналізувати вимоги, які бувають test levels і test types, як проєктувати тести техніками, оформлювати test cases і звітувати про дефекти. Тема 8 нічого з цього не скасовує, а показує, як той самий інструментарій змінюється залежно від того, що саме ми тестуємо: програму на комп’ютері, сайт у браузері чи застосунок у телефоні.</p>
+    <p>Ця тема завершує першу половину курсу і працює як «збирання пазла»: у наскрізному прикладі ти застосуєш поняття з тем 2–7 до продукту, який існує одразу в трьох формах.</p>
+  </div>
+</section>
+
+<section id="goals" aria-labelledby="goals-h">
+  <h2 id="goals-h">Цілі навчання</h2>
+  <p>Рівні K1–K3 показують, що саме ти зможеш зробити після теми: K1 - згадати, K2 - пояснити і порівняти, K3 - застосувати.</p>
+  <ul class="goals">
+    <li><span class="k">K1</span>Після теми ти зможеш назвати типи мобільних пристроїв (MAT-1.3.1) і типові перервання, з якими стикається мобільний застосунок.</li>
+    <li><span class="k">K2</span>Ти зможеш розрізнити native, browser-based і hybrid застосунки та пояснити, які тести потрібні кожному з них (MAT-1.4.1, MAT-2.2.4).</li>
+    <li><span class="k">K2</span>Ти зможеш пояснити різницю між характеристиками compatibility і portability за ISO/IEC 25010 і не плутати їх із побутовим словом «сумісність» (FL-2.2.2).</li>
+    <li><span class="k">K2</span>Ти зможеш пояснити різницю між emulator і simulator та чому жоден із них не замінює реальний пристрій повністю (MAT-4.3.1).</li>
+    <li><span class="k">K3</span>Ти зможеш підготувати тестові умови для перервань, зміни орієнтації екрана, дозволів доступу і перемикання мереж (MAT-2.1.6–2.1.8, MAT-2.3.1).</li>
+    <li><span class="k">K3</span>Ти зможеш обрати набір пристроїв для тестування на основі ринкових даних і порахувати очікуване покриття ринку (MAT-1.6.1, вправа HO-1.7.1).</li>
+  </ul>
+</section>
+
+<section id="s1" aria-labelledby="s1-h">
+  <h2 id="s1-h">1. Чому тип програмного забезпечення змінює підхід до тестування</h2>
+  <p>Почнімо з принципу, який ти вже бачив у темі 2: <span class="term">testing is context dependent</span> - тестування залежить від контексту. Не існує одного універсального підходу, який однаково добре спрацює для будь-якого продукту: те, як ми тестуємо, визначається тим, що ми тестуємо і за яких умов цим користуються. Тип програмного забезпечення - один із найпомітніших елементів цього контексту.</p>
+  <p>Уяви одну й ту саму функцію «оформити замовлення». У програмі, встановленій на комп’ютер, головні ризики пов’язані з тим, чи вона взагалі встановиться в певній версії операційної системи і чи не конфліктуватиме з іншими програмами. У браузері ризики інші: сторінка може по-різному поводитися в різних браузерах, а без з’єднання з сервером функція не працює зовсім. У телефоні до цього додаються вхідні дзвінки посеред оплати, поворот екрана, слабкий сигнал мережі і розряджена батарея. Функціональні вимоги однакові, а набір того, що може зламатися, - різний.</p>
+  <p>Щоб описувати ці відмінності спільною мовою, повернемося до теми 4. <span class="term">Non-functional testing</span> <span class="gl">(<a href="https://glossary.istqb.org">ISTQB Glossary</a>)</span> перевіряє, <em>наскільки добре</em> система робить свою роботу. Його предмет описують характеристики якості: performance efficiency, compatibility, usability, reliability, security, maintainability і portability. Для цієї теми найважливіші три з них - compatibility, portability і usability, - бо саме вони найсильніше залежать від типу ПЗ.</p>
+  <div class="note">
+    <strong><span class="ic" aria-hidden="true">!</span>Назви характеристик</strong>
+    <p>У редакції ISO/IEC 25010 від 2023 року usability перейменовано на interaction capability, portability - на flexibility, а новою характеристикою стала safety. Далі в тексті лишаємо звичні назви і поруч згадуємо нові.</p>
+  </div>
+  <span class="ref">Джерело: <a href="https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/">ISTQB CTFL v4.0.1</a>, розд. 1.3 і 2.2.2; <a href="#src-iso">ISO/IEC 25010</a>.</span>
+</section>
+
+<section id="s2" aria-labelledby="s2-h">
+  <h2 id="s2-h">2. Desktop application</h2>
+  <p>Desktop-застосунок встановлюють і запускають безпосередньо в операційній системі комп’ютера - Windows, macOS чи Linux. Програма живе на конкретній машині, користується її ресурсами (пам’яттю, диском, принтером, файлами) і часто може працювати без підключення до мережі або з мережею лише для окремих дій, наприклад для синхронізації.</p>
+  <p>З того, що програма встановлюється в операційну систему, випливають її специфічні ризики, і всі вони добре описуються характеристиками ISO/IEC 25010. Перший ризик стосується <span class="term">installability</span> <span class="gl">(<a href="https://glossary.istqb.org">ISTQB Glossary</a>)</span> - здатності продукту успішно встановлюватися й видалятися в заданому середовищі. На практиці це перевірки встановлення, оновлення і видалення, зокрема що після видалення не лишається «сміття», яке заважатиме наступному встановленню. Другий ризик - <span class="term">adaptability</span> <span class="gl">(<a href="https://glossary.istqb.org">ISTQB Glossary</a>)</span>, тобто здатність працювати в різних апаратних і програмних середовищах: у різних версіях ОС, з різною роздільною здатністю екрана чи обсягом пам’яті. І installability, і adaptability - це підхарактеристики portability. Третій ризик - <span class="term">co-existence</span> <span class="gl">(<a href="https://glossary.istqb.org">ISTQB Glossary</a>)</span>: програма ділить комп’ютер з іншими програмами і не повинна шкодити їм або страждати від них, коли вони разом користуються спільними ресурсами. Co-existence - підхарактеристика compatibility.</p>
+  <p>Приклад з практики: команда отримує нову збірку внутрішньої програми для працівників складу. Перш ніж перевіряти функції, тестувальник встановлює її на «чисту» машину з мінімальною підтримуваною версією ОС, потім на машину, де вже стоїть попередня версія програми, і переконується, що оновлення не стерло локальні налаштування. Лише після цього має сенс братися за test cases з функціональності - бо якщо програма не встановилася, жоден із них не виконається.</p>
+  <span class="ref">Джерело: <a href="https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/">ISTQB CTFL v4.0.1</a>, розд. 2.2.2; <a href="#src-iso">ISO/IEC 25010</a> (installability, adaptability, co-existence).</span>
+</section>
+
+<section id="s3" aria-labelledby="s3-h">
+  <h2 id="s3-h">3. Web application</h2>
+  <p>Web-застосунок користувач нічого не встановлює: він відкриває його в браузері за адресою. Браузер виконує роль клієнта, а основна логіка і дані розміщені на сервері. Для таких застосунків (<span class="term">browser-based applications</span>) тестування встановлення на пристрій не потрібне, зате потрібна перевірка сумісності з браузерами, і без інтернету вони не працюють.</p>
+  <p>Вебзастосунок пристосовується до різних екранів кількома способами. <span class="term">Responsive</span> застосунок плавно підлаштовує дизайн під розмір екрана і форм-фактор пристрою. <span class="term">Adaptive</span> застосунок має кілька окремих варіантів дизайну під наперед визначені розміри. Для тестувальника різниця практична: responsive-сторінку перевіряють на різних ширинах вікна, шукаючи моменти, коли елементи «ламаються», а adaptive - на кожному з передбачених розмірів і на межах між ними. Перевірка на межах - це boundary value analysis з теми 5, застосована до ширини екрана.</p>
+  <p>Окрема тема для вебу - <span class="term">accessibility</span> <span class="gl">(<a href="https://glossary.istqb.org">ISTQB Glossary</a>)</span>, тобто міра, в якій продуктом можуть користуватися люди з різними можливостями, зокрема з порушеннями зору, слуху чи моторики. Для вебу нормативним документом є W3C Web Content Accessibility Guidelines (WCAG) 2.2. WCAG побудовані на чотирьох принципах: контент має бути perceivable (сприйнятним), operable (керованим), understandable (зрозумілим) і robust (надійним для різних технологій, зокрема допоміжних). Кожен критерій WCAG має рівень відповідності A, AA або AAA. Приклад з практики: тестувальник проходить форму оформлення замовлення лише клавіатурою, без миші, і перевіряє, що фокус видно на кожному елементі, а повідомлення про помилку в полі не передається тільки червоним кольором.</p>
+  <div class="note">
+    <strong><span class="ic" aria-hidden="true">!</span>Важливо</strong>
+    <p>У ISO/IEC 25010:2011 accessibility - підхарактеристика usability. У редакції 2023 року її замінили дві підхарактеристики interaction capability: inclusivity та user assistance. Суть перевірок від цього не змінилася.</p>
+  </div>
+  <span class="ref">Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.4 і 3.1.8; <a href="https://www.w3.org/TR/WCAG22/">WCAG 2.2</a>; <a href="#src-iso">ISO/IEC 25010</a>.</span>
+</section>
+
+<section id="s4" aria-labelledby="s4-h">
+  <h2 id="s4-h">4. Mobile application</h2>
+  <p>Мобільне тестування - найширша частина теми. Почнімо з того, <em>на чому</em> працюють мобільні застосунки. Є п’ять типів мобільних пристроїв. Basic phones - телефони лише для дзвінків і SMS, на які не можна встановлювати застосунки. Feature phones мають обмежену підтримку застосунків і вбудований браузер. Smartphones мають багато сенсорів і операційну систему, що підтримує встановлення застосунків, мультимедіа і браузер. Tablets схожі на смартфони, але мають більший екран. Companion devices, до яких належать wearables (годинники, фітнес-браслети) і деякі IoT-пристрої, працюють разом зі смартфоном чи планшетом і розширюють їхні можливості.</p>
+  <p>Далі - <em>які</em> бувають мобільні застосунки. Основних типів три. <span class="term">Native</span> застосунок розробляють за допомогою SDK конкретної платформи; його завантажують, встановлюють і оновлюють з магазину, він повністю використовує можливості пристрою і, як наслідок, може потребувати тестування на всіх підтримуваних пристроях. <span class="term">Browser-based</span> застосунок відкривається в мобільному браузері і побудований на звичайних веб-технологіях. <span class="term">Hybrid</span> застосунок поєднує обидва підходи: це нативна «обгортка» з web view, усередині якої працює вебзастосунок; його теж завантажують з магазину. Для мобільних вебзастосунків є ще чотири варіанти: окрема мобільна версія сайту (m(dot) site), responsive, adaptive і progressive web apps - останні дозволяють створити ярлик на головному екрані, виглядають як нативні і інколи працюють офлайн.</p>
+  <p>Нарешті - <em>як</em> застосунок влаштований. Клієнтська частина буває <span class="term">thin client</span>, яка майже не містить коду під конкретний пристрій і зазвичай використовує браузер, або <span class="term">fat (thick) client</span>, яка має кілька шарів власного коду і використовує можливості ОС - зазвичай це native або hybrid застосунки. За потребою в мережі розрізняють never-connected застосунки, що працюють без мережі (наприклад, простий калькулятор), always-connected, яким потрібне постійне з’єднання (сюди належать усі мобільні вебзастосунки), і partially-connected, яким мережа потрібна лише для окремих завдань на кшталт передачі даних. Ці категорії визначають, які перевірки з’єднання проєктувати далі.</p>
+  <p>Чому все це так важливо? У мобільного тестування є виклики, рідкісні або некритичні для desktop і серверного ПЗ: множинність платформ і фрагментація пристроїв, відмінності в «залізі» і сенсорах, багато типів мереж і операторів, пристрої з обмеженими ресурсами, різні канали розповсюдження з окремим погодженням у магазинах застосунків, а також висока видимість дефектів - користувач, який натрапив на серйозний баг, легко напише про це відгук у магазині.</p>
+  <div class="note interview">
+    <strong><span class="ic" aria-hidden="true">?</span>На співбесіді питають</strong>
+    <p>«Чим native відрізняється від hybrid і від web-застосунку з погляду тестування?» Native і hybrid встановлюються з магазину, тож їм потрібні перевірки встановлення й роботи з функціями пристрою; hybrid додатково має ризик проблем продуктивності через «обгортку»; web-застосунку встановлення не потрібне, але потрібна перевірка сумісності з браузерами, і без інтернету він не працює.</p>
+  </div>
+  <span class="ref">Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.3, 1.4, 1.5, 1.7.</span>
+
+  <section class="task" id="t1" data-kind="match"></section>
+</section>
+
+<section id="s5" aria-labelledby="s5-h">
+  <h2 id="s5-h">5. Напрями тестування</h2>
+  <p>Для різних типів ПЗ виділяють вісім напрямів тестування. Нижче - що перевіряє кожен із них.</p>
+
+  <h3 id="s5-1">5.1. Device compatibility</h3>
+  <p>Пристроїв на ринку тисячі, і вони відрізняються навіть у межах одного виробника, тому протестувати все неможливо - це принцип exhaustive testing is impossible. Перший крок - вибір набору пристроїв (device portfolio) за аналітичними даними про цільовий ринок: розподілом платформ і версій ОС, популярними моделями в регіоні, розмірами екранів. Вибір завжди є компромісом між покриттям ринку, вартістю і ризиком.</p>
+  <p>Є три підходи до цього компромісу. Single platform approach звужує обсяг до одного типу пристрою, однієї версії ОС, одного оператора й одного типу мережі. Multi-platform approach бере представницьку вибірку пристроїв і ОС, якими користується більшість клієнтів цільового ринку. Maximum coverage approach намагається охопити всі версії ОС, пристрої, виробників, операторів і мережі - по суті, це exhaustive testing, який зазвичай економічно недоцільний.</p>
+  <p>На обраних пристроях перевіряють, як застосунок працює з різними екранами: чи масштабуються всі елементи інтерфейсу під щільність і розмір екрана, чи не перекриваються вони, чи немає проблем з дотиками і чи не стискаються зображення на екранах з високою щільністю пікселів. Окремо перевіряють роботу з функціями пристрою, причому не лише коли функція є, а й коли її немає. Наприклад, застосунок, що вміє працювати з фронтальною і задньою камерами, не повинен падати на пристрої з однією камерою або зовсім без камери.</p>
+  <span class="ref">Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.1, 1.6, 2.1.1, 2.1.2, 2.2.4; <a href="https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/">ISTQB CTFL v4.0.1</a>, розд. 1.3.</span>
+
+  <h3 id="s5-2">5.2. Internet availability</h3>
+  <p>Мобільний пристрій може підключатися через стільникові мережі 2G, 3G, 4G і 5G, через Wi-Fi, а також через NFC чи Bluetooth. У реальному житті користувач не сидить на одному з’єднанні: він виходить з дому і перемикається з Wi-Fi на мобільний інтернет, переходить між стільниками мережі, потрапляє в «мертві зони» (blind spots) без сигналу або сам вмикає режим польоту.</p>
+  <p>Для такого тестування є три тестові умови: застосунок коректно працює в різних режимах з’єднання; перемикання між режимами не спричиняє неочікуваної поведінки чи втрати даних; якщо функціональність обмежена через слабку мережу або її відсутність, користувач отримує зрозуміле повідомлення про те, що саме обмежено і чому. Для відтворення умов є три шляхи: емулятори й симулятори (дешево, але їхня цінність обмежена), власна мобільна мережа з керуванням пропускною здатністю (дуже дорого) і field testing (вигідніше, але тести важко точно повторити).</p>
+  <p>Тут знадобиться знання про режими синхронізації з розділу 4. Якщо застосунок працює в режимі store-and-forward, він зберігає дані локально й відправляє їх, коли з’явиться мережа. Тестувальник перевіряє саме цей шлях: створює замовлення в режимі польоту, вмикає мережу і дивиться, чи дійшло воно до сервера один раз, без дублювання і втрат.</p>
+  <span class="ref">Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.5 і 2.3.</span>
+
+  <h3 id="s5-3">5.3. OS compatibility vs browser compatibility</h3>
+  <p><span class="term">OS compatibility</span> і browser compatibility описують схожу ідею для різних типів ПЗ. OS compatibility важлива для застосунків, що встановлюються в операційну систему: desktop, native і hybrid. Коли застосунок підтримує кілька платформ або версій ОС, перевіряють: як обробляються перервання, сповіщення й оптимізації енергоспоживання на кожній платформі; чи правильно працює функціональність, якщо версії для різних платформ мають спільний код або створені кросплатформним фреймворком (а якщо спільного коду немає, це фактично два різні застосунки, і тестувати треба все); зворотну сумісність (backward compatibility) - роботу на старіших версіях платформи; а також нові чи змінені можливості самої платформи.</p>
+  <p><span class="term">Browser compatibility</span> (cross-browser compatibility) важлива для web-застосунків. Тестові умови: сумісність із поширеними мобільними браузерами, відсутність впливу різних JavaScript-рушіїв на функціональність, правильне використання можливостей ОС (наприклад, системного date picker і відкриття потрібної клавіатури) та відповідність вигляду і поведінки очікуванням користувачів платформи.</p>
+  <div class="note mistake">
+    <strong><span class="ic" aria-hidden="true">✕</span>Типова помилка</strong>
+    <p>Вважати, що «працює в різних ОС і браузерах» - це характеристика compatibility за ISO/IEC 25010. У стандарті compatibility означає здатність обмінюватися інформацією з іншими продуктами (interoperability) і працювати поруч з ними в одному середовищі, не заважаючи (co-existence). А здатність працювати в різних апаратних і програмних середовищах - це adaptability, підхарактеристика portability (у редакції 2023 року - flexibility). У побуті слово «compatibility» вживають ширше, ніж у стандарті. Коли класифікуєш перевірку, дивись на визначення, а не на слово в назві.</p>
+  </div>
+  <span class="ref">Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 2.2.4 і 2.2.5; <a href="#src-iso">ISO/IEC 25010</a>; <a href="https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/">ISTQB CTFL v4.0.1</a>, розд. 2.2.2.</span>
+
+  <section class="task" id="t2" data-kind="buckets"></section>
+
+  <h3 id="s5-4">5.4. Client-Server Testing</h3>
+  <p>У client-server архітектурі клієнт (браузер, мобільний чи desktop-застосунок) надсилає запити, а сервер їх обробляє, зберігає дані і повертає відповідь. Single-tier архітектура монолітна: всі сервери на одній машині. Multi-tier розподіляє компоненти - у two-tier окремі вебсервер і сервер бази даних, у three-tier додається ще сервер застосунку. Обмін даними може бути синхронним, коли клієнт чекає на відповідь, або асинхронним, коли сервер відповідає одразу, обробляє запит у фоні і потім повідомляє клієнта про результат.</p>
+  <p>Дефект може жити в клієнті, на сервері або на стику між ними. Взаємодію і інтерфейси між частинами системи перевіряють на рівні integration testing з теми 4: component integration testing для внутрішніх компонентів і system integration testing для взаємодії з зовнішніми системами та сервісами. Приклад: сервер повертає помилку при оплаті, а клієнт замість зрозумілого повідомлення показує порожній екран. Функції сервера й клієнта окремо можуть бути справними - ламається саме взаємодія.</p>
+  <p>Продуктивність усієї системи, наприклад як сервер витримує тисячі одночасних запитів, - окрема перевірка. Її планують у тестовій стратегії.</p>
+  <span class="ref">Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.5 і 3.1.4; <a href="https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/">ISTQB CTFL v4.0.1</a>, розд. 2.2.1.</span>
+
+  <h3 id="s5-5">5.5. Mobility Testing</h3>
+  <p>Мобільним застосунком користуються в русі, і це створює окремий ризик. Зменшують його через <span class="term">field testing</span> - тестування в реальних умовах використання.</p>
+  <p>Field testing охоплює роботу в різних мережах, перемикання між вежами, Wi-Fi і мобільним інтернетом під час роботи застосунку, різні швидкості й рівні сигналу та мертві зони. Воно потребує ретельного планування: треба заздалегідь визначити пристрої, тарифи різних операторів, маршрути, види транспорту і навіть час доби. До field testing належать і перевірки usability в реальному середовищі та вплив умов довкілля, як-от температури. Поруч стоїть тестування сенсорів розташування: точність геолокації перевіряють при вмиканні й вимиканні GPS, при різній якості сигналу і при переході на запасні способи визначення місця - через Wi-Fi, вежі стільникового зв’язку або ручне введення адреси.</p>
+  <span class="ref">Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.8, 2.1.4, 3.2.1.</span>
+
+  <h3 id="s5-6">5.6. Usability Testing</h3>
+  <p><span class="term">Usability</span> <span class="gl">(<a href="https://glossary.istqb.org">ISTQB Glossary</a>)</span> - це міра, в якій визначені користувачі можуть використати продукт для досягнення визначених цілей ефективно, продуктивно і із задоволенням у визначеному контексті використання. Багато користувачів видаляють мобільний застосунок за кілька хвилин після встановлення саме через погану usability або продуктивність. Тому дизайн має враховувати «look and feel» платформи: якщо поведінка не відповідає очікуванням користувача Android чи iOS, враження буде негативним.</p>
+  <p>У задовільної usability п’ять ознак: застосунок самопояснювальний та інтуїтивний; він допускає помилки користувача; він послідовний у формулюваннях і поведінці; він дотримується гайдлайнів дизайну платформи; потрібна інформація видима і досяжна на кожному розмірі й типі екрана. Для usability testing використовують евристики, тури і персони - це розвиток experience-based підходів з теми 5, зокрема exploratory testing.</p>
+  <p>Поруч стоять ще дві перевірки. Globalization і localization testing перевіряє формати дат, чисел і валют та перекладені тексти: переклад може бути довшим за оригінал і не вміститися на маленькому екрані, а формат дати РІК–МІСЯЦЬ–ДЕНЬ і ДЕНЬ–МІСЯЦЬ–РІК легко переплутати. Accessibility testing для мобільних застосунків проводять, вмикаючи по черзі налаштування доступності пристрою і перевіряючи застосунок з кожним із них.</p>
+  <div class="note">
+    <strong><span class="ic" aria-hidden="true">!</span>Важливо</strong>
+    <p>Знахідки usability testing здебільшого є саме знахідками, а не дефектами. Тестувальник має вміти пояснити їх команді і Product Owner. Тут стане в пригоді нейтральний, фактологічний стиль з теми 7.</p>
+  </div>
+  <span class="ref">Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 3.1.5, 3.1.7, 3.1.8, 3.3; <a href="https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/">ISTQB CTFL v4.0.1</a>, розд. 4.4.</span>
+
+  <h3 id="s5-7">5.7. Application updates</h3>
+  <p>Будь-яке оновлення - це зміна системи, що вже працює в експлуатації. Тестування таких змін називають <span class="term">maintenance testing</span> <span class="gl">(<a href="https://glossary.istqb.org">ISTQB Glossary</a>)</span>. Тригери для нього діляться на три групи: модифікації (заплановані покращення, виправлення, hot fixes), оновлення або міграції операційного середовища і виведення системи з експлуатації. Обсяг maintenance testing залежить від ризику змін і розміру системи. До нього завжди входять дві речі з теми 4: <span class="term">confirmation testing</span> - перевірка, що виправлений дефект справді виправлено, і <span class="term">regression testing</span> <span class="gl">(<a href="https://glossary.istqb.org">ISTQB Glossary</a>)</span> - перевірка, що зміна не зламала те, що раніше працювало.</p>
+  <p>Для застосунків, що встановлюються, оновлення має додаткові ризики. Серед тестових умов installability - оновлення без втрати даних, перевстановлення з опцією збереження даних застосунку і без неї, а також переривання встановлення чи оновлення (наприклад, вимкненням пристрою або втратою інтернету) і коректне відновлення процесу після цього. Мобільні застосунки перед публікацією проходять погодження в магазині застосунків за чеклістами на основі гайдлайнів платформи; якщо реліз є оновленням, додатково запускають тести, пов’язані з оновленням. Після публікації виконують post-release testing - завантажують і встановлюють застосунок безпосередньо з магазину.</p>
+  <p>Для web-застосунку процес інший: нова версія розгортається на сервері, і користувач отримує її, просто відкривши сторінку, без встановлення. Перевірки встановлення на пристрої тут не потрібні, а regression testing лишається обов’язковим.</p>
+  <span class="ref">Джерело: <a href="https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/">ISTQB CTFL v4.0.1</a>, розд. 2.2.3 і 2.3; <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.4, 3.1.1, 3.2.2.</span>
+
+  <h3 id="s5-8">5.8. Interruption Testing</h3>
+  <p>Мобільний застосунок постійно ділить пристрій з телефоном, месенджерами і самою ОС, тому його роботу регулярно переривають. Типові перервання: голосові дзвінки, повідомлення, підключення зарядного пристрою, нестача пам’яті та інші сповіщення. Окремо є перервання, які ініціює сам користувач: перемикання на інший застосунок або переведення пристрою в режим очікування, поки застосунок працює. <span class="term">Interrupt</span> - це подія, що відбувається під час іншої події.</p>
+  <p>Тести на перервання перевіряють, що застосунок обробляє всі ці перервання без негативного впливу на свою поведінку і зберігає стан, дані й сесію, хоч би яке перервання сталося. Класичний приклад: користувач відповідає на дзвінок під час роботи в застосунку, а після дзвінка повертається туди, де був. Окремо перевіряють режим «do-not-disturb»: коли його вимикають після тривалої роботи, на застосунок одночасно надходить багато сповіщень.</p>
+  <p>Поруч із перерваннями є ще кілька подій, які «вклинюються» в роботу застосунку. Сповіщення (notifications) перевіряють, коли застосунок на передньому плані і у фоні, зокрема при низькому заряді батареї; якщо сповіщення містить посилання на певну сторінку застосунку (deep link), має відкритися саме вона, а не головний екран. Зміну орієнтації екрана перевіряють кількома поспіль перемиканнями між portrait і landscape, бо проблеми рендерингу чи втрати стану не завжди проявляються після першого повороту; введені в поля дані мають зберігатися. Дозволи доступу (до камери, контактів, мікрофона) перевіряють і з відмовою під час встановлення, і з наданням або відкликанням після нього: застосунок має працювати зі зменшеними дозволами, просити лише ті, що стосуються його функцій, і не завершуватися аварійно без пояснень.</p>
+  <span class="ref">Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 2.1.6, 2.1.7, 2.1.8, 2.2.1.</span>
+
+  <section class="task" id="t3" data-kind="multi"></section>
+  <section class="task" id="t4" data-kind="buckets"></section>
+</section>
+
+<section id="s6" aria-labelledby="s6-h">
+  <h2 id="s6-h">6. Де тестувати: реальні пристрої, емулятори, симулятори і лабораторії</h2>
+  <p>Щоб виконати всі описані перевірки, потрібне тестове середовище. Є два програмні замінники реального пристрою. <span class="term">Simulator</span> моделює середовище виконання (runtime environment); застосунок для нього компілюється в окрему версію, яка працює в симуляторі, але не на реальному пристрої. <span class="term">Emulator</span> моделює апаратне забезпечення і використовує те саме середовище виконання, що й фізичний пристрій, тому застосунок для нього компілюється в той самий байт-код, що й для реального пристрою.</p>
+  <p>Обидва інструменти корисні на ранніх етапах розробки, бо швидко розгортаються і дозволяють імітувати умови, які складно чи дорого відтворити на реальних пристроях: різну швидкість мережі й втрату пакетів, зміну орієнтації, перервання, координати GPS у будь-якій точці світу. Але емулятор не може повністю замінити пристрій: він може поводитися інакше, а деякі функції, як-от multi-touch чи акселерометр, можуть не підтримуватися. Симулятор як заміна пристрою ще обмеженіший, бо протестований у ньому застосунок відрізняється від того, що буде розповсюджено. Тому типова тестова стратегія використовує емулятори й симулятори на ранніх етапах, а реальні пристрої - на пізніших.</p>
+  <p>Реальні пристрої тримають в on-premise лабораторії (всі пристрої на місці) або орендують у remote test lab, до пристроїв якої підключаються через мережу. On-premise лабораторія дає доступ до перевірок, де потрібна фізична близькість і сенсори: батарея, дотики, NFC. Віддалена лабораторія допомагає, коли потрібних пристроїв немає фізично, але може реагувати повільніше і обмежувати жести та multi-touch. На практиці ці підходи часто поєднують.</p>
+  <div class="note interview">
+    <strong><span class="ic" aria-hidden="true">?</span>На співбесіді питають</strong>
+    <p>«Чим emulator відрізняється від simulator?» Simulator моделює середовище виконання, emulator - апаратне забезпечення, і застосунок для емулятора компілюється в той самий байт-код, що й для реального пристрою. Ці терміни часто помилково вживають як синоніми.</p>
+  </div>
+  <span class="ref">Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.6, 4.3, 4.4.</span>
+
+  <section class="task" id="t5" data-kind="highlight"></section>
+</section>
+
+<section id="case" aria-labelledby="case-h">
+  <h2 id="case-h">Наскрізний приклад: MeowStore</h2>
+  <div class="case">
+    <p><span class="badge">Навчальний кейс</span> MeowStore - вигаданий онлайн-зоомагазин, який ми використовуємо як наскрізний продукт курсу. Усі дані в цьому прикладі, зокрема частки ринку, вигадані для навчання.</p>
+    <p>У попередніх темах ми розглядали функцію оформлення замовлення: аналізували вимоги до неї, проєктували тести, писали test cases і звітували про дефекти. Тепер з’ясовується, що MeowStore існує в трьох формах, і кожна вимагає свого погляду.</p>
+    <p><strong>Web-версія</strong> - responsive сайт каталогу з кошиком. Для неї команда планує cross-browser перевірки, тести на різних ширинах вікна і перевірку форми оформлення замовлення за WCAG 2.2 (наприклад, проходження лише з клавіатури). Тестів встановлення на пристрій тут немає - сайт нічого не встановлює.</p>
+    <p><strong>Мобільний native застосунок</strong> для Android та iOS має сканер штрихкодів корму (камера), push-сповіщення про статус доставки з deep link на сторінку замовлення і кошик, що зберігається локально. Для нього релевантні майже всі напрями з розділу 5: device compatibility (зокрема пристрої без задньої камери), connectivity (перемикання Wi-Fi ↔ мобільний інтернет під час оплати), interruption testing, дозволи на камеру, зміна орієнтації, оновлення без втрати кошика і post-release перевірка з магазину.</p>
+    <p><strong>Desktop-програма</strong> для працівників складу під Windows друкує етикетки і синхронізує залишки з сервером. Тут на першому плані installability, adaptability до підтримуваних версій ОС, co-existence з драйвером принтера та іншими програмами і взаємодія клієнта з сервером.</p>
+    <p>Під час interruption testing мобільного застосунку тестувальниця помітила: якщо на кроці оплати надходить вхідний дзвінок, після повернення в застосунок кошик порожній. Це суперечить тестовій умові: після перервання стан і дані мають зберігатися. Далі все як у темі 7: вона фіксує кроки відтворення, пристрій і версію ОС, фактичний і очікуваний результат, а severity і priority виставляє за правилами, узгодженими в команді.</p>
+    <span class="ref">Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 2.1.7.</span>
+
+    <section class="task" id="e1" data-kind="numeric"></section>
+    <section class="task" id="e2" data-kind="single"></section>
+  </div>
+</section>
+
+<section id="quiz" aria-labelledby="quiz-h">
+  <h2 id="quiz-h">Питання для самоперевірки</h2>
+  <p>Спробуй відповісти самостійно, а потім розкрий відповідь. Питання йдуть у порядку розділів теми.</p>
+  <div id="quizList"></div>
+</section>
+
+<section id="glossary" aria-labelledby="gl-h">
+  <h2 id="gl-h">Глосарій теми</h2>
+  <p>Терміни подано англійською, пояснення - власний переказ українською. Точні формулювання шукай за назвою терміна в <a href="https://glossary.istqb.org">ISTQB Glossary</a>.</p>
+  <dl class="gloss">
+    <dt>accessibility</dt><dd>Міра, в якій продуктом можуть користуватися люди з різними можливостями. Джерело: ISTQB Glossary; CT-MAT 3.1.8.</dd>
+    <dt>adaptability</dt><dd>Здатність продукту працювати в різних або змінних апаратних і програмних середовищах; підхарактеристика portability. Джерело: ISTQB Glossary; ISO/IEC 25010.</dd>
+    <dt>backward compatibility</dt><dd>Здатність застосунку працювати на попередніх версіях платформ. Джерело: CT-MAT, додаток B.</dd>
+    <dt>co-existence</dt><dd>Здатність продукту працювати поруч з іншими продуктами в спільному середовищі, ділячи ресурси, без шкоди для них. Джерело: ISTQB Glossary; ISO/IEC 25010.</dd>
+    <dt>compatibility</dt><dd>Здатність компонента чи системи обмінюватися інформацією з іншими компонентами або системами і працювати в спільному середовищі. Джерело: ISTQB Glossary; ISO/IEC 25010.</dd>
+    <dt>emulator</dt><dd>Програма, що імітує поведінку апаратного забезпечення; мобільний емулятор запускає справжній образ ОС. Джерело: ISTQB Glossary; CT-MAT 4.3, додаток B.</dd>
+    <dt>fat client / thin client</dt><dd>Клієнт, що бере на себе значну частину обробки даних, і клієнт, що майже не має власного коду під пристрій. Джерело: CT-MAT 1.5, додаток B.</dd>
+    <dt>field testing</dt><dd>Тестування в реальних умовах використання: різні мережі, переміщення, умови довкілля. Джерело: CT-MAT 3.2.1.</dd>
+    <dt>hybrid app</dt><dd>Застосунок, що поєднує нативну «обгортку» з вебконтентом. Джерело: CT-MAT 1.4, додаток B.</dd>
+    <dt>installability</dt><dd>Здатність продукту успішно встановлюватися і видалятися в заданому середовищі; підхарактеристика portability. Джерело: ISTQB Glossary; ISO/IEC 25010.</dd>
+    <dt>interoperability</dt><dd>Здатність систем обмінюватися інформацією і використовувати її. Джерело: ISTQB Glossary; ISO/IEC 25010.</dd>
+    <dt>interrupt</dt><dd>Подія, що відбувається під час іншої події, наприклад вхідний дзвінок під час роботи застосунку. Джерело: CT-MAT 2.1.7, додаток B.</dd>
+    <dt>maintenance testing</dt><dd>Тестування змін у системі, що вже експлуатується. Джерело: ISTQB Glossary; CTFL 2.3.</dd>
+    <dt>native app</dt><dd>Застосунок, розроблений спеціально для певної платформи з її API та інструментами. Джерело: CT-MAT 1.4, додаток B.</dd>
+    <dt>portability</dt><dd>Здатність продукту бути перенесеним з одного середовища в інше; у ISO/IEC 25010:2023 - flexibility. Джерело: ISTQB Glossary; ISO/IEC 25010.</dd>
+    <dt>regression testing</dt><dd>Тестування, що перевіряє, чи зміна не спричинила нових дефектів у незмінених частинах. Джерело: ISTQB Glossary; CTFL 2.2.3.</dd>
+    <dt>simulator</dt><dd>Віртуальне середовище виконання, що імітує ОС, але не є нею. Джерело: ISTQB Glossary; CT-MAT 4.3, додаток B.</dd>
+    <dt>usability</dt><dd>Міра, в якій визначені користувачі досягають визначених цілей ефективно, продуктивно і із задоволенням у визначеному контексті; у ISO/IEC 25010:2023 - interaction capability. Джерело: ISTQB Glossary; ISO/IEC 25010.</dd>
+  </dl>
+</section>
+
+<section id="sources" aria-labelledby="src-h">
+  <h2 id="src-h">Джерела</h2>
+  <ol class="src">
+    <li id="src-ctfl">ISTQB® Certified Tester Foundation Level (CTFL) Syllabus, v4.0.1. Використані розділи: 1.3 (принципи тестування), 2.2.1 (test levels), 2.2.2 (test types), 2.2.3 (confirmation and regression testing), 2.3 (maintenance testing), 4.4 (experience-based test techniques). <a href="https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/">istqb.org - CTFL v4.0</a></li>
+    <li id="src-mat">ISTQB® Certified Tester Specialist - Mobile Application Testing, Foundation Level Syllabus, Version 2019 (реліз від 3 травня 2019). Використані розділи: 1.1–1.8, 2.1.1–2.1.8, 2.2.1, 2.2.4, 2.2.5, 2.3, 3.1.1, 3.1.4, 3.1.5, 3.1.7, 3.1.8, 3.2.1, 3.2.2, 4.3, 4.4, додаток B. <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">PDF на istqb.org</a></li>
+    <li>ISTQB® Glossary of Testing Terms. <a href="https://glossary.istqb.org">glossary.istqb.org</a></li>
+    <li id="src-iso">ISO/IEC 25010:2011 та ISO/IEC 25010:2023, Systems and software engineering - Systems and software Quality Requirements and Evaluation (SQuaRE) - Product quality model. Характеристики compatibility, usability / interaction capability, portability / flexibility.</li>
+    <li>W3C, Web Content Accessibility Guidelines (WCAG) 2.2, W3C Recommendation. <a href="https://www.w3.org/TR/WCAG22/">w3.org/TR/WCAG22</a></li>
+    <li>W3C Web Accessibility Initiative, Mobile Accessibility (посилання з CT-MAT, розд. 6.4). <a href="https://www.w3.org/WAI/standards-guidelines/mobile/">w3.org/WAI/standards-guidelines/mobile</a></li>
+  </ol>
+  <h3>Використані записи глосарію ISTQB</h3>
+  <p>accessibility, adaptability, co-existence, compatibility, emulator, installability, interoperability, maintenance testing, non-functional testing, portability, regression testing, confirmation testing, simulator, usability. Терміни backward compatibility, fat client, thin client, hybrid app, native app та interrupt узято з додатка B <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>.</p>
+</section>
+
+<footer class="end">
+  <p>Конспект підготовлено для першої половини курсу мануального тестування. Кольорова схема - фіолетово-лавандова. Сторінка працює офлайн і не зберігає твої відповіді.</p>
+</footer>
+</main>
+</div>
+
+<div class="progress" role="region" aria-label="Загальний прогрес">
+  <span>Розв’язано задач: <strong id="progCount">0 з 0</strong></span>
+  <div class="track" id="progWrap" role="progressbar" aria-label="Прогрес розв’язання задач" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><div class="bar" id="progBar"></div></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var solved={};
+function updateProgress(){
+  var ids=Object.keys(solved), n=ids.filter(function(i){return solved[i]}).length;
+  $('#progCount').textContent=n+' з '+ids.length;
+  $('#progBar').style.width=(ids.length?n/ids.length*100:0)+'%';
+  var w=$('#progWrap'); w.setAttribute('aria-valuenow',n); w.setAttribute('aria-valuemax',ids.length);
+}
+function mark(node,ok,msg){
+  node.classList.remove('is-ok','is-bad'); node.classList.add(ok?'is-ok':'is-bad');
+  var m=node.querySelector(':scope > .mark'); if(!m){m=document.createElement('span');m.className='mark';node.appendChild(m);}
+  m.innerHTML=ok?'<span aria-hidden="true">✓ </span>Правильно':'<span aria-hidden="true">✗ </span>Неправильно'+(msg?'. '+msg:'');
+}
+function clearMark(node){node.classList.remove('is-ok','is-bad');var m=node.querySelector(':scope > .mark');if(m)m.remove();}
+
+/* ---------- task renderers ---------- */
+var R={};
+R.match=function(cfg,body){
+  var opts=shuffle(cfg.pairs);
+  var html='<ol class="match-list">';
+  shuffle(cfg.pairs).forEach(function(p,i){
+    var id=cfg.id+'-m'+i;
+    html+='<li data-key="'+p.key+'"><label for="'+id+'">'+p.desc+'</label><select id="'+id+'"><option value="">- обери тип -</option>'+
+      opts.map(function(o){return '<option value="'+o.key+'">'+esc(o.term)+'</option>'}).join('')+'</select></li>';
+  });
+  body.innerHTML=html+'</ol>';
+  $$('select',body).forEach(function(s){s.addEventListener('change',function(){clearMark(s.parentNode)})});
+};
+R.match.check=function(cfg,body){
+  var ok=0,items=$$('li',body);
+  items.forEach(function(li){
+    var v=$('select',li).value, key=li.dataset.key, p=cfg.pairs.filter(function(x){return x.key===key})[0];
+    var good=v===key; if(good)ok++;
+    mark(li,good,good?'':(v?'Правильна відповідь: '+p.term+'. '+p.ex:'Відповідь не обрано. Правильна відповідь: '+p.term+'.'));
+  });
+  return {ok:ok,total:items.length};
+};
+
+R.buckets=function(cfg,body){
+  var wrap=document.createElement('div'); wrap.className='dnd '+(cfg.buckets.length>3?'cols-5':'cols-3');
+  var poolHtml='<div class="drop pool" data-b=""><h4>Нерозподілені картки</h4><ul class="zone" aria-label="Нерозподілені картки"></ul></div>';
+  var bHtml='<div class="buckets">'+cfg.buckets.map(function(b){return '<div class="drop" data-b="'+b.key+'"><h4>'+b.name+'</h4><ul class="zone" aria-label="Кошик '+esc(b.name)+'"></ul></div>'}).join('')+'</div>';
+  wrap.innerHTML=poolHtml+bHtml; body.innerHTML=''; body.appendChild(wrap);
+  var pool=$('.pool .zone',wrap);
+  shuffle(cfg.items).forEach(function(it,i){
+    var li=document.createElement('li'); li.className='chip'; li.dataset.key=it.b; li.dataset.idx=cfg.items.indexOf(it);
+    var sid=cfg.id+'-c'+i;
+    li.innerHTML='<span class="handle" title="Перетягни картку">⠿</span><span class="chip-text" id="'+sid+'-t">'+it.text+'</span>'+
+      '<select id="'+sid+'" aria-labelledby="'+sid+'-l '+sid+'-t"><option value="">Не розподілено</option>'+
+      cfg.buckets.map(function(b){return '<option value="'+b.key+'">'+esc(b.name)+'</option>'}).join('')+'</select><span class="sr-only" id="'+sid+'-l">Кошик для картки:</span>';
+    pool.appendChild(li);
+    $('select',li).addEventListener('change',function(e){move(li,e.target.value,wrap)});
+    dragify(li,wrap);
+  });
+};
+function move(chip,b,wrap){
+  var zone=$('.drop[data-b="'+b+'"] .zone',wrap); if(!zone)return;
+  zone.appendChild(chip); $('select',chip).value=b; clearMark(chip);
+}
+function dragify(chip,wrap){
+  var h=$('.handle',chip);
+  h.addEventListener('pointerdown',function(e){
+    if(e.button!==undefined&&e.button!==0)return;
+    e.preventDefault();
+    try{h.setPointerCapture(e.pointerId);}catch(_){}
+    var r=chip.getBoundingClientRect(), dx=e.clientX-r.left, dy=e.clientY-r.top;
+    var g=chip.cloneNode(true); g.classList.add('drag-ghost'); g.removeAttribute('id');
+    $$('[id]',g).forEach(function(n){n.removeAttribute('id')});
+    g.style.width=r.width+'px'; g.style.left=r.left+'px'; g.style.top=r.top+'px';
+    g.setAttribute('aria-hidden','true'); document.body.appendChild(g); chip.classList.add('dragging');
+    var last=null;
+    function over(x,y){var el=document.elementFromPoint(x,y);var d=el&&el.closest('.drop');return d&&wrap.contains(d)?d:null;}
+    function mv(ev){g.style.left=(ev.clientX-dx)+'px';g.style.top=(ev.clientY-dy)+'px';var d=over(ev.clientX,ev.clientY);if(last&&last!==d)last.classList.remove('hover');if(d)d.classList.add('hover');last=d;}
+    function up(ev){
+      h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);
+      g.remove(); chip.classList.remove('dragging'); if(last)last.classList.remove('hover');
+      if(ev.type==='pointerup'){var d=over(ev.clientX,ev.clientY); if(d)move(chip,d.dataset.b,wrap);}
+    }
+    h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
+  });
+}
+R.buckets.check=function(cfg,body){
+  var ok=0,chips=$$('.chip',body);
+  chips.forEach(function(c){
+    var v=$('select',c).value, it=cfg.items[+c.dataset.idx], good=v===it.b; if(good)ok++;
+    var bn=cfg.buckets.filter(function(b){return b.key===it.b})[0].name;
+    mark(c,good,good?'':'Правильний кошик: '+bn+'. '+it.ex);
+  });
+  return {ok:ok,total:chips.length};
+};
+
+R.multi=function(cfg,body){
+  var html='<fieldset style="border:0;padding:0;margin:0"><legend class="sr-only">'+esc(cfg.title)+'</legend><ul class="opts">';
+  shuffle(cfg.options).forEach(function(o,i){
+    var id=cfg.id+'-o'+i;
+    html+='<li class="opt-wrap opt" data-idx="'+cfg.options.indexOf(o)+'"><input type="checkbox" id="'+id+'"><label for="'+id+'">'+o.text+'</label></li>';
+  });
+  body.innerHTML=html+'</ul></fieldset>';
+  $$('input',body).forEach(function(i){i.addEventListener('change',function(){clearMark(i.parentNode)})});
+};
+R.multi.check=function(cfg,body){
+  var ok=0,items=$$('li',body);
+  items.forEach(function(li){
+    var o=cfg.options[+li.dataset.idx], ch=$('input',li).checked, good=ch===o.correct; if(good)ok++;
+    mark(li,good,good?'':o.ex);
+  });
+  return {ok:ok,total:items.length};
+};
+
+R.highlight=function(cfg,body){
+  var html='<div class="hl">';
+  shuffle(cfg.sentences).forEach(function(s){
+    html+='<span class="sent-wrap" data-idx="'+cfg.sentences.indexOf(s)+'"><button type="button" class="sent" aria-pressed="false">'+s.text+'</button></span>';
+  });
+  body.innerHTML=html+'</div>';
+  $$('.sent',body).forEach(function(b){b.addEventListener('click',function(){b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true');clearMark(b.parentNode);})});
+};
+R.highlight.check=function(cfg,body){
+  var ok=0,items=$$('.sent-wrap',body);
+  items.forEach(function(w){
+    var s=cfg.sentences[+w.dataset.idx], p=$('.sent',w).getAttribute('aria-pressed')==='true', good=p===s.wrong; if(good)ok++;
+    mark(w,good,good?(s.wrong?s.ex:''):s.ex);
+  });
+  return {ok:ok,total:items.length};
+};
+
+R.numeric=function(cfg,body){
+  body.innerHTML=cfg.pre+'<p><label for="'+cfg.id+'-in">'+cfg.label+'</label><br><input type="text" inputmode="decimal" id="'+cfg.id+'-in" autocomplete="off" style="width:8em"> %</p>';
+};
+R.numeric.check=function(cfg,body){
+  var inp=$('input',body), v=parseFloat(inp.value.replace(',','.').replace('%','')), good=v===cfg.answer;
+  mark(inp.parentNode,good,good?'':cfg.ex); return {ok:good?1:0,total:1};
+};
+
+R.single=function(cfg,body){
+  var html='<fieldset style="border:0;padding:0;margin:0"><legend class="sr-only">'+esc(cfg.title)+'</legend><ul class="opts">';
+  shuffle(cfg.options).forEach(function(o,i){
+    var id=cfg.id+'-r'+i;
+    html+='<li class="opt-wrap opt" data-idx="'+cfg.options.indexOf(o)+'"><input type="radio" name="'+cfg.id+'-radio" id="'+id+'"><label for="'+id+'">'+o.text+'</label></li>';
+  });
+  body.innerHTML=html+'</ul></fieldset>';
+};
+R.single.check=function(cfg,body){
+  var items=$$('li',body), chosen=items.filter(function(li){return $('input',li).checked})[0];
+  items.forEach(clearMark);
+  if(!chosen){return {ok:0,total:1,msg:'Обери одну відповідь.'};}
+  var o=cfg.options[+chosen.dataset.idx]; mark(chosen,o.correct,o.correct?'':o.ex);
+  return {ok:o.correct?1:0,total:1};
+};
+
+function build(cfg){
+  var el=document.getElementById(cfg.id); if(!el)return;
+  el.setAttribute('aria-labelledby',cfg.id+'-h');
+  el.innerHTML='<header class="task-head"><span class="task-num">'+cfg.label+'</span><h3 id="'+cfg.id+'-h">'+cfg.title+'</h3></header>'+
+   '<p class="task-cond">'+cfg.cond+'</p><div class="task-body"></div>'+
+   '<div class="task-actions"><button type="button" class="btn primary" data-act="check">Перевірити</button>'+
+   '<button type="button" class="btn" data-act="reset">Скинути</button>'+
+   '<button type="button" class="btn ghost" data-act="explain" aria-expanded="false" aria-controls="'+cfg.id+'-ex">Показати пояснення</button></div>'+
+   '<p class="feedback" role="status" aria-live="polite"></p><div class="explain" id="'+cfg.id+'-ex" hidden>'+cfg.explain+'</div>';
+  var body=$('.task-body',el), fb=$('.feedback',el), ex=$('.explain',el), kind=el.dataset.kind;
+  solved[cfg.id]=false;
+  R[kind](cfg,body);
+  el.addEventListener('click',function(e){
+    var b=e.target.closest('[data-act]'); if(!b||!el.contains(b))return;
+    var a=b.dataset.act;
+    if(a==='check'){
+      var r=R[kind].check(cfg,body), all=r.ok===r.total;
+      fb.className='feedback '+(all?'ok':'bad');
+      fb.textContent=r.msg?('✗ '+r.msg):(all?'✓ Усе правильно - задачу розв’язано.':'✗ Правильно '+r.ok+' з '+r.total+'. Переглянь позначені елементи і пояснення під ними.');
+      if(all&&!solved[cfg.id]){solved[cfg.id]=true;updateProgress();}
+    }else if(a==='reset'){R[kind](cfg,body);fb.textContent='';fb.className='feedback';}
+    else if(a==='explain'){var open=ex.hidden;ex.hidden=!open;b.setAttribute('aria-expanded',String(open));b.textContent=open?'Сховати пояснення':'Показати пояснення';}
+  });
+}
+
+/* ---------- task data ---------- */
+var TASKS=[
+{id:'t1',label:'Задача 1',title:'Типи мобільних застосунків',
+ cond:'Для кожного опису обери у списку тип мобільного застосунку або спосіб створення мобільного вебзастосунку, який він описує. Кожен тип використовується один раз.',
+ pairs:[
+  {key:'native',term:'Native',desc:'Розробляється з SDK конкретної платформи, завантажується й оновлюється з магазину, повністю використовує можливості пристрою.',ex:'Саме native застосунки створюють платформними SDK і встановлюють з магазину (CT-MAT 1.4).'},
+  {key:'browser',term:'Browser-based',desc:'Відкривається через мобільний браузер; тестування встановлення не потрібне, але потрібне тестування сумісності з браузерами.',ex:'Browser-based застосунок відкривається в браузері: встановлення не перевіряють, сумісність із браузерами перевіряють. Джерело: CT-MAT 1.4.'},
+  {key:'hybrid',term:'Hybrid',desc:'Нативна «обгортка» з web view, у якій працює вебзастосунок; завантажується з магазину.',ex:'Поєднання нативної обгортки і вебзастосунку - це hybrid (CT-MAT 1.4).'},
+  {key:'mdot',term:'m(dot) site',desc:'Окрема мобільна версія сайту, на яку браузер мобільного пристрою потрапляє замість основної.',ex:'Окрема мобільна версія сайту називається m(dot) site (CT-MAT 1.4).'},
+  {key:'resp',term:'Responsive web app',desc:'Дизайн плавно підлаштовується під розмір екрана і форм-фактор (viewport).',ex:'Плавне підлаштування під будь-який розмір - responsive (CT-MAT 1.4).'},
+  {key:'adapt',term:'Adaptive web app',desc:'Для кількох наперед визначених розмірів екрана існують окремі варіанти дизайну.',ex:'Окремі дизайни під фіксовані розміри - adaptive (CT-MAT 1.4).'},
+  {key:'pwa',term:'Progressive web app',desc:'Можна створити ярлик на головному екрані; виглядає як нативний і інколи працює офлайн.',ex:'Ярлик на головному екрані й можлива робота офлайн - progressive web app (CT-MAT 1.4).'}
+ ],
+ explain:'<p>Основних типів мобільних застосунків три: native, browser-based і hybrid. Мобільні вебзастосунки роблять ще чотирма способами: m(dot) site, responsive, adaptive і progressive web apps.</p><p>Щоб не плутати responsive і adaptive, запам’ятай: responsive підлаштовується плавно під будь-який розмір, adaptive має набір готових дизайнів під конкретні розміри.</p><p>Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.4.</p>'
+},
+{id:'t2',label:'Задача 2',title:'Compatibility, portability чи usability?',
+ cond:'Розклади перевірки по характеристиках якості за ISO/IEC 25010. Перетягни картку за маркер ⠿ або обери кошик у списку на картці.',
+ buckets:[{key:'comp',name:'Compatibility'},{key:'port',name:'Portability'},{key:'usab',name:'Usability'}],
+ items:[
+  {b:'comp',text:'Складська програма і антивірус працюють на одному комп’ютері, не заважаючи одна одній.',ex:'Спільна робота в одному середовищі - co-existence, підхарактеристика compatibility.'},
+  {b:'comp',text:'Мобільний застосунок коректно передає дані замовлення в зовнішню платіжну систему і отримує відповідь.',ex:'Обмін інформацією з іншою системою - interoperability, підхарактеристика compatibility.'},
+  {b:'port',text:'Desktop-програма однаково працює в мінімальній і в найновішій підтримуваній версії ОС.',ex:'Робота в різних програмних середовищах - adaptability, підхарактеристика portability (у 2023 - flexibility). Це і є пастка з блоку «Типова помилка».'},
+  {b:'port',text:'Встановлення, оновлення і видалення програми проходять успішно.',ex:'Це installability - підхарактеристика portability.'},
+  {b:'usab',text:'Користувач зі скрінрідером може пройти оформлення замовлення від початку до кінця.',ex:'Це accessibility - у ISO/IEC 25010:2011 підхарактеристика usability.'},
+  {b:'usab',text:'Новий користувач без підказок розуміє, як додати товар у кошик.',ex:'Легкість освоєння і зрозумілість належать до usability (у 2023 - interaction capability).'}
+ ],
+ explain:'<p>У ISO/IEC 25010 compatibility охоплює co-existence і interoperability, тобто стосунки продукту з <em>іншими продуктами</em>. Portability охоплює adaptability, installability і replaceability, тобто стосунки продукту з <em>середовищем</em>. Usability описує стосунки продукту з <em>користувачем</em>. Джерела: CTFL v4.0.1, розд. 2.2.2; ISO/IEC 25010.</p>'
+},
+{id:'t3',label:'Задача 3',title:'Що є типовим перериванням?',
+ cond:'Познач усі події, які є типовими перерваннями мобільного застосунку, включно з перерваннями, які ініціює користувач. Решту залиш непозначеними.',
+ options:[
+  {correct:true,text:'Вхідний голосовий дзвінок',ex:'Голосовий дзвінок - перше в переліку типових перервань (CT-MAT 2.1.7).'},
+  {correct:true,text:'Вхідне повідомлення',ex:'Повідомлення названі серед типових перервань (CT-MAT 2.1.7).'},
+  {correct:true,text:'Підключення зарядного пристрою',ex:'Підключення зарядного пристрою - типове перервання. Джерело: CT-MAT 2.1.7.'},
+  {correct:true,text:'Нестача пам’яті на пристрої',ex:'Нестача пам’яті - типове перервання. Джерело: CT-MAT 2.1.7.'},
+  {correct:true,text:'Перемикання користувача на інший застосунок',ex:'Це перервання, ініційоване користувачем (CT-MAT 2.1.7).'},
+  {correct:true,text:'Переведення пристрою в режим очікування під час роботи застосунку',ex:'Standby під час роботи - перервання, ініційоване користувачем (CT-MAT 2.1.7).'},
+  {correct:false,text:'Введення тексту в поле пошуку застосунку',ex:'Це звичайна дія всередині застосунку, а не подія, що відбувається під час іншої події.'},
+  {correct:false,text:'Прокручування каталогу товарів',ex:'Прокручування - штатна взаємодія з самим застосунком, не перервання.'}
+ ],
+ explain:'<p>Типові перервання: голосові дзвінки, повідомлення, підключення зарядного пристрою, нестача пам’яті та інші сповіщення. Перервання, які ініціює користувач, - це перемикання між застосунками і переведення пристрою в режим очікування. Тести на перервання перевіряють, що застосунок зберігає стан, дані й сесію.</p><p>Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 2.1.7.</p>'
+},
+{id:'t4',label:'Задача 4',title:'До якого напряму тестування належить перевірка?',
+ cond:'Розклади перевірки мобільного застосунку по напрямах тестування. Перетягни картку за маркер ⠿ або обери кошик у списку на картці.',
+ buckets:[{key:'dev',name:'Device compatibility'},{key:'intr',name:'Interruption Testing'},{key:'net',name:'Internet availability'},{key:'upd',name:'Application updates'},{key:'us',name:'Usability Testing'}],
+ items:[
+  {b:'dev',text:'Елементи інтерфейсу не перекриваються на екранах з різною роздільною здатністю і співвідношенням сторін.',ex:'Це тестування для різних дисплеїв (CT-MAT 2.1.2), частина compatibility with device hardware.'},
+  {b:'dev',text:'На пристрої без задньої камери відкриття сканера штрихкодів не призводить до аварійного завершення.',ex:'Перевірка відсутності функції пристрою - CT-MAT 2.1.1.'},
+  {b:'intr',text:'Під час оплати надходить дзвінок; після нього користувач повертається на той самий крок з тими самими даними.',ex:'Класичний тест на перервання з CT-MAT 2.1.7.'},
+  {b:'intr',text:'Під час відтворення відеоінструкції користувач підключає зарядний пристрій.',ex:'Підключення зарядного пристрою - типове перервання (CT-MAT 2.1.7).'},
+  {b:'net',text:'Перехід з Wi-Fi на мобільний інтернет під час завантаження не спричиняє втрати даних.',ex:'Перемикання між режимами з’єднання - CT-MAT 2.3.'},
+  {b:'net',text:'Без мережі застосунок показує повідомлення, яка функція недоступна і чому.',ex:'Зрозуміле повідомлення про обмеження через мережу - тестова умова з CT-MAT 2.3.'},
+  {b:'upd',text:'Після оновлення до нової версії збережені налаштування і кошик користувача не зникли.',ex:'Оновлення без втрати даних - тестова умова installability з CT-MAT 3.1.1.'},
+  {b:'upd',text:'Після публікації нової версії застосунок завантажують і встановлюють безпосередньо з магазину.',ex:'Це post-release testing (CT-MAT 3.2.2).'},
+  {b:'us',text:'Застосунок дотримується гайдлайнів дизайну платформи і використовує однакові формулювання на всіх екранах.',ex:'Це дві з п’яти ознак задовільної usability. Джерело: CT-MAT 3.1.5.'}
+ ],
+ explain:'<p>Device compatibility - екрани і функції пристрою. Interruption Testing - дзвінки, зарядка та інші перервання. Internet availability - режими з’єднання. Application updates - оновлення без втрати даних і перевірка з магазину. Usability Testing - гайдлайни платформи і послідовність інтерфейсу.</p><p>Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 2.1, 2.3, 3.1, 3.2.</p>'
+},
+{id:'t5',label:'Задача 5',title:'Знайди помилки в чернетці плану тестування',
+ cond:'Нижче - чернетка тестувальника-початківця для MeowStore. Натисни на кожне хибне твердження, щоб позначити його прапорцем ⚑. Коректні твердження не позначай.',
+ sentences:[
+  {wrong:true,text:'Для мобільної вебверсії (browser-based) перевіримо встановлення й видалення через магазин застосунків.',ex:'Для browser-based застосунків тестування встановлення не потрібне; потрібне тестування сумісності з браузерами. Джерело: CT-MAT 1.4.'},
+  {wrong:false,text:'Для нативного застосунку спершу оберемо набір пристроїв на основі аналітичних даних про цільовий ринок.',ex:'Це коректно: CT-MAT 1.1 і 2.1.1 радять формувати device portfolio на основі ринкових даних.'},
+  {wrong:true,text:'Зміну орієнтації екрана перевіримо один раз - цього достатньо, щоб виявити проблеми з відображенням.',ex:'CT-MAT 2.1.6: проблеми рендерингу і стану можуть не проявитися після одного повороту, тож потрібні кілька перемикань поспіль.'},
+  {wrong:true,text:'Весь регрес виконаємо тільки на емуляторах, бо емулятор повністю відтворює реальний пристрій.',ex:'CT-MAT 4.3.1: емулятор не може повністю замінити пристрій - він може поводитися інакше, а деякі функції не підтримуються.'},
+  {wrong:false,text:'Якщо користувач відхилить доступ до камери, сканер має пояснити, навіщо потрібен дозвіл, а не завершуватися аварійно.',ex:'Це коректно: CT-MAT 2.1.8 вимагає, щоб застосунок працював зі зменшеними дозволами і не падав без пояснень.'},
+  {wrong:true,text:'Після оновлення застосунку перевіримо лише нову функцію - старі функції не змінювалися.',ex:'CTFL 2.2.3 і 2.3: зміна може зламати незмінені частини, тому після оновлення потрібне regression testing.'},
+  {wrong:false,text:'Під час переходу з Wi-Fi на мобільний інтернет перевіримо, що кошик не втрачає товари.',ex:'Це коректно: CT-MAT 2.3 - перемикання між режимами з’єднання не повинно спричиняти втрати даних.'}
+ ],
+ explain:'<p>Хибних тверджень чотири: про встановлення вебверсії, про одноразовий поворот екрана, про емулятори як повну заміну пристроїв і про відмову від регресу після оновлення. Три інші твердження коректні.</p><p>Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.4, 2.1.6, 2.1.8, 2.3, 4.3; <a href="https://istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/">ISTQB CTFL v4.0.1</a>, розд. 2.2.3 і 2.3.</p>'
+},
+{id:'e1',label:'Крок 1',title:'Порахуй покриття ринку',
+ cond:'Порахуй, яку частку цільового ринку покриють три найпоширеніші моделі.',
+ pre:'<p>Аналітика показала таку частку користувачів цільового ринку за моделями пристроїв (дані вигадані для навчання):</p><div class="table-scroll"><table class="data"><caption class="sr-only">Частка користувачів за моделями</caption><thead><tr><th scope="col">Модель</th><th scope="col">Частка</th></tr></thead><tbody><tr><td>Пристрій A</td><td>31%</td></tr><tr><td>Пристрій B</td><td>18%</td></tr><tr><td>Пристрій C</td><td>12%</td></tr><tr><td>Пристрій D</td><td>9%</td></tr><tr><td>Пристрій E</td><td>6%</td></tr><tr><td>Інші моделі</td><td>24%</td></tr></tbody></table></div><p>Команда вирішила тестувати на трьох найпоширеніших моделях.</p>',
+ label2:'',
+ answer:61,
+ ex:'Склади частки трьох найпоширеніших моделей: 31 + 18 + 12 = 61%.',
+ explain:'<p>Очікуване покриття ринку для набору пристроїв - це сума часток пристроїв, що входять у набір: 31% + 18% + 12% = 61%.</p><p>Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.1, 1.6, вправа HO-1.7.1.</p>'
+},
+{id:'e2',label:'Крок 2',title:'Назви підхід до вибору пристроїв',
+ cond:'Команда MeowStore тестує на представницькій вибірці пристроїв і версій ОС, якими користується більшість клієнтів цільового ринку. Як називається цей підхід?',
+ options:[
+  {correct:true,text:'Multi-platform approach',ex:''},
+  {correct:false,text:'Single platform approach',ex:'Single platform approach звужує обсяг до одного пристрою, однієї ОС, одного оператора й одного типу мережі (CT-MAT 1.6).'},
+  {correct:false,text:'Maximum coverage approach',ex:'Maximum coverage approach охоплює всі версії ОС, пристрої, виробників, операторів і мережі - це по суті exhaustive testing (CT-MAT 1.6).'},
+  {correct:false,text:'Field testing',ex:'Field testing - це тестування в реальних умовах використання (CT-MAT 3.2.1), а не підхід до вибору пристроїв.'}
+ ],
+ explain:'<p>Є три підходи до фрагментації пристроїв: single platform, multi-platform і maximum coverage. Представницька вибірка для більшості цільового ринку - це multi-platform approach.</p><p>Джерело: <a href="https://istqb.org/wp-content/uploads/2024/11/ISTQB-CT-MAT_Syllabus_v1.0_2019.pdf">ISTQB CT-MAT 2019</a>, розд. 1.6.</p>'
+}
+];
+TASKS.forEach(function(t){ if(t.id==='e1'){t.label='Крок 1';} });
+/* numeric uses cfg.label for input label; keep separate field */
+TASKS.forEach(function(t){ if(t.id==='e1'){ t.inputLabel='Очікуване покриття ринку трьома моделями, %'; } });
+R.numeric=(function(orig){ var f=function(cfg,body){ body.innerHTML=cfg.pre+'<p><label for="'+cfg.id+'-in">'+cfg.inputLabel+'</label><br><input type="text" inputmode="decimal" id="'+cfg.id+'-in" autocomplete="off" style="width:8em"> %</p>'; }; f.check=orig.check; return f; })(R.numeric);
+TASKS.forEach(build);
+updateProgress();
+
+/* ---------- self-check ---------- */
+var QS=[
+ ['K1','Який принцип тестування пояснює, чому підхід до тестування залежить від типу ПЗ?','Принцип «testing is context dependent»: не існує єдиного універсального підходу до тестування, він визначається контекстом продукту і його використання. Тип ПЗ - один з елементів контексту. Джерело: CTFL v4.0.1, розд. 1.3.'],
+ ['K1','Назви п’ять типів мобільних пристроїв.','Basic phones, feature phones, smartphones, tablets і companion devices (сюди належать wearables і деякі IoT-пристрої). Джерело: CT-MAT, розд. 1.3.'],
+ ['K1','Які три основні типи мобільних застосунків?','Native, browser-based і hybrid. Джерело: CT-MAT, розд. 1.4.'],
+ ['K2','Чим thin client відрізняється від fat client і що це змінює для тестування?','Thin client майже не має власного коду під пристрій і зазвичай працює через браузер; fat client має кілька шарів коду і використовує можливості ОС - зазвичай це native або hybrid. Що більше логіки в клієнті, то більше перевірок треба робити на самому пристрої: встановлення, сумісність з ОС, робота з функціями пристрою. Джерело: CT-MAT, розд. 1.5.'],
+ ['K2','Поясни різницю між never-connected, always-connected і partially-connected застосунками. Наведи приклад кожного.','Never-connected працює без мережі (наприклад, простий калькулятор). Always-connected потребує постійного з’єднання (усі мобільні вебзастосунки). Partially-connected потребує мережі лише для окремих завдань, наприклад передачі даних, і може довго працювати без неї (наприклад, застосунок, що синхронізує збережені дані, коли з’являється мережа). Джерело: CT-MAT, розд. 1.5.'],
+ ['K2','Чому перевірка «застосунок працює в кількох версіях ОС» за ISO/IEC 25010 належить до portability, а не до compatibility?','У ISO/IEC 25010 compatibility означає взаємодію з іншими продуктами - обмін інформацією (interoperability) і співіснування в спільному середовищі (co-existence). Робота в різних програмних і апаратних середовищах - це adaptability, підхарактеристика portability (у редакції 2023 року - flexibility). Джерела: CTFL v4.0.1, розд. 2.2.2; ISO/IEC 25010.'],
+ ['K3','MeowStore запускає мобільну вебверсію. Колега пропонує додати в план тести встановлення і видалення. Що відповіси і що запропонуєш натомість?','Для browser-based застосунків тестування встановлення на пристрій не потрібне, натомість потрібне тестування сумісності з браузерами: поширені мобільні браузери, різні JavaScript-рушії, використання можливостей ОС (date picker, потрібна клавіатура). Джерело: CT-MAT, розд. 1.4 і 2.2.4.'],
+ ['K1','Які перервання типові для мобільних застосунків?','Голосові дзвінки, повідомлення, підключення зарядного пристрою, нестача пам’яті та інші сповіщення; а також перервання, які ініціює користувач: перемикання між застосунками і переведення пристрою в режим очікування. Джерело: CT-MAT, розд. 2.1.7.'],
+ ['K3','Користувач заповнив форму доставки, повернув телефон горизонтально - і введена адреса зникла. Яку перевірку треба було спроєктувати і як правильно її виконувати?','Тестування зміни орієнтації екрана: після повороту застосунок має зберігати стан, поля введення - вже введені дані. Перевіряти треба кількома перемиканнями поспіль між portrait і landscape, у різних станах інтерфейсу, з даними і без, бо проблеми не завжди проявляються після першого повороту. Джерело: CT-MAT, розд. 2.1.6.'],
+ ['K3','Застосунок доставки під час встановлення просить доступ до контактів, хоча жодна його функція контактів не використовує. Як це оцінити з погляду тестування?','Дозволи мають запитуватися лише для ресурсів, що стосуються функціональності застосунку, а кожен запит має бути обґрунтованим. Запит доступу до контактів без відповідної функції порушує цю тестову умову, і тестувальник фіксує це як знахідку. Джерело: CT-MAT, розд. 2.1.8.'],
+ ['K3','Сформулюй три тестові умови для перевірки роботи застосунку доставки за різної доступності інтернету.','(1) Застосунок коректно працює в різних режимах з’єднання - Wi-Fi, мобільний інтернет різних поколінь. (2) Перемикання між режимами, наприклад з Wi-Fi на мобільний інтернет під час оплати, не спричиняє неочікуваної поведінки чи втрати даних. (3) Якщо мережі немає або вона слабка, користувач отримує зрозуміле повідомлення, яку функцію обмежено і чому. Джерело: CT-MAT, розд. 2.3.'],
+ ['K2','Чому після оновлення застосунку не можна обмежитися перевіркою лише нової функції?','Оновлення - це зміна системи в експлуатації, тобто підстава для maintenance testing. Зміна може зламати частини, яких вона прямо не стосувалася, тому потрібне regression testing; а для застосунків, що встановлюються, ще й перевірка, що оновлення не втрачає дані користувача. Джерела: CTFL v4.0.1, розд. 2.2.3 і 2.3; CT-MAT, розд. 3.1.1.'],
+ ['K2','Чим emulator відрізняється від simulator і чому жоден із них не замінює реальний пристрій повністю?','Simulator моделює середовище виконання, а застосунок для нього компілюється в окрему версію. Emulator моделює апаратне забезпечення і використовує той самий байт-код, що й реальний пристрій. Емулятор може поводитися інакше, ніж пристрій, і не підтримувати деякі функції (multi-touch, акселерометр); симулятор ще обмеженіший, бо протестована версія відрізняється від тієї, що буде розповсюджена. Джерело: CT-MAT, розд. 4.3.1.'],
+ ['K1','На яких чотирьох принципах побудовані WCAG 2.2?','Perceivable, operable, understandable і robust. Джерело: W3C WCAG 2.2.']
+];
+var ql=$('#quizList');
+ql.innerHTML=QS.map(function(q,i){return '<details class="q"><summary><span><span class="k">'+q[0]+'</span>'+(i+1)+'. '+q[1]+'</span></summary><div class="ans"><p>'+q[2]+'</p></div></details>'}).join('');
+
+/* ---------- toc & print ---------- */
+var toc=$('#tocBox'), mq=window.matchMedia('(min-width: 1000px)');
+function syncToc(){toc.open=mq.matches;}
+syncToc(); if(mq.addEventListener)mq.addEventListener('change',syncToc);
+$$('.toc a').forEach(function(a){a.addEventListener('click',function(){if(!mq.matches)toc.open=false;})});
+window.addEventListener('beforeprint',function(){
+  $$('details').forEach(function(d){d.open=true});
+  $$('.explain').forEach(function(x){x.hidden=false});
+});
+})();
+</script>
+</body>
+</html>
